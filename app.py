@@ -7,28 +7,38 @@ from datetime import datetime
 # -------- إعداد ديزاين CSS مخصص --------
 st.markdown("""
     <style>
-    /* تغيير لون خلفية الصفحة */
+    /* تغيير لون الخلفية */
     .stApp {
         background-color: #0D1B2A;
-        background-image: url('https://images.unsplash.com/photo-1603052879461-5085c3eb07d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1400&q=80');
-        background-size: cover;
-        background-position: center;
+        position: relative;
+    }
+
+    /* إضافة صورة الكرة الأرضية في النص */
+    .background-image {
+        position: absolute;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0.1;
+        z-index: 0;
     }
 
     /* تنسيق العنوان */
-    h1 {
+    .main-title {
         color: #ffffff;
         text-align: center;
         font-size: 60px;
         margin-bottom: 50px;
+        position: relative;
+        z-index: 1;
     }
 
-    /* تنسيق النصوص */
+    /* تنسيق كل الكتابات */
     label, p, div, span {
         color: #d1d5db !important;
     }
 
-    /* تخصيص الـ selectbox و الـ input */
+    /* تخصيص الselectbox والtext input */
     .stTextInput > div > div, .stSelectbox > div {
         background-color: #1B263B;
         border-radius: 10px;
@@ -37,7 +47,7 @@ st.markdown("""
         padding: 8px;
     }
 
-    /* تخصيص الزرار */
+    /* تخصيص الزر */
     button[kind="primary"] {
         background-color: #415A77;
         color: white;
@@ -46,20 +56,16 @@ st.markdown("""
         padding: 10px 20px;
         border: none;
     }
-
-    /* تعديل زر التحميل */
-    .stDownloadButton > button {
-        background-color: #778DA9;
-        color: white;
-        font-weight: bold;
-    }
     </style>
+
+    <!-- هنا بنضيف صورة الكرة الأرضية -->
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Earth_Western_Hemisphere_transparent_background.png/600px-Earth_Western_Hemisphere_transparent_background.png" class="background-image" width="300">
 """, unsafe_allow_html=True)
 
 # -------- Streamlit App --------
-st.markdown("<h1>Bravo News 👌</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-title'>Bravo News 👌</h1>", unsafe_allow_html=True)
 
-# قائمة التصنيفات الجاهزة
+# قائمة التصنيفات
 rss_feeds = {
     "BBC عربي": "http://feeds.bbci.co.uk/arabic/rss.xml",
     "CNN بالعربية": "http://arabic.cnn.com/rss/latest",
@@ -71,14 +77,14 @@ rss_feeds = {
 # اختيار التصنيف
 selected_feed = st.selectbox("اختر مصدر الأخبار:", list(rss_feeds.keys()))
 
-# أو أدخل رابط RSS مخصص
+# إدخال رابط مخصص
 custom_rss = st.text_input("🛠️ مخصص لتغذية الأخبار (اختياري):")
 
 # إدخال الكلمات المفتاحية
 keywords_input = st.text_input("🔎 بحث الكلمات المفتاحية (اختياري):")
 keywords = [kw.strip() for kw in keywords_input.split(",")] if keywords_input else []
 
-# -------- استخراج الأخبار من RSS --------
+# -------- استخراج الأخبار --------
 def fetch_news_from_rss(rss_url, keywords):
     feed = feedparser.parse(rss_url)
     news_list = []
@@ -134,4 +140,3 @@ if st.button("🔍 استخراج الأخبار"):
             )
         else:
             st.warning(f"⚠️ لم يتم العثور على أخبار تطابق الكلمات، لكن المصدر يحتوي على {total_entries} خبر.")
-
