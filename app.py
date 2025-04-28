@@ -1,90 +1,76 @@
 
 import streamlit as st
-from selenium import webdriver
-from selenium.webdriver.edge.service import Service as EdgeService
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
+import feedparser
 import pandas as pd
-from datetime import datetime
-import time
 import io
+from datetime import datetime
 
-# -------- تهيئة Microsoft Edge --------
-def initialize_driver():
-    edge_options = webdriver.EdgeOptions()
-    edge_options.use_chromium = True
-    edge_options.add_argument("--headless")  # تشغيل المتصفح في الخلفية
-    edge_options.add_argument("--start-maximized")
-    return webdriver.Edge(service=EdgeService(EdgeChromiumDriverManager().install()), options=edge_options)
-
-# -------- استخراج الأخبار --------
-def fetch_news(url, keywords):
-    driver = initialize_driver()
-    driver.get(url)
-    time.sleep(5)  # استنى الموقع يحمل
-
+# -------- استخراج الأخبار من RSS --------
+def fetch_news_from_rss(rss_url, keywords):
+    feed = feedparser.parse(rss_url)
     news_list = []
-    
-    try:
-        latest_section = driver.find_element(By.XPATH, '//h2/a[@title="آخر الأخبار"]')
-        ActionChains(driver).move_to_element(latest_section).perform()
-        time.sleep(3)
-    except Exception as e:
-        st.error(f"❌ مش لاقي قسم آخر الأخبار: {e}")
-        driver.quit()
-        return []
+    total_entries = len(feed.entries)
 
-    # استخراج أول 10 أخبار
-    news_items = driver.find_elements(By.CSS_SELECTOR, 'div.comp_1_item')[:10]
+    for entry in feed.entries:
+        title = entry.title
+        summary = entry.get("summary", "")
+        link = entry.link
+        published = entry.get("published", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
-    for item in news_items:
-        try:
-            title_el = item.find_element(By.CSS_SELECTOR, 'h3.comp_1_item_header')
-            link_el = item.find_element(By.TAG_NAME, 'a')
-            title = title_el.text.strip()
-            link = link_el.get_attribute('href')
-
-            if keywords:
-                if any(keyword.lower() in title.lower() for keyword in keywords):
-                    news_list.append({
-                        "تاريخ": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        "العنوان": title,
-                        "الرابط": link
-                    })
-            else:
+        if keywords:
+            if any(keyword.lower() in (title + " " + summary).lower() for keyword in keywords):
                 news_list.append({
-                    "تاريخ": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "تاريخ النشر": published,
                     "العنوان": title,
+                    "الوصف": summary,
                     "الرابط": link
                 })
+        else:
+            news_list.append({
+                "تاريخ النشر": published,
+                "العنوان": title,
+                "الوصف": summary,
+                "الرابط": link
+            })
 
-        except:
-            continue
-
-    driver.quit()
-    return news_list
+    return news_list, total_entries
 
 # -------- Streamlit App --------
-st.set_page_config(page_title="سكاي نيوز - استخراج آخر الأخبار", layout="centered")
+st.set_page_config(page_title="أداة استخراج الأخبار من مصادر متعددة - النسخة المتقدمة", layout="centered")
 
-st.title("📰 استخراج آخر الأخبار من Sky News Arabia")
+st.title("📰 استخراج آخر الأخبار من مصادر موثوقة عبر RSS (نسخة متقدمة)")
 
-# إدخال الرابط
-url = st.text_input("ادخل رابط صفحة الأخبار:", value="https://www.skynewsarabia.com/")
+# قائمة التصنيفات الجاهزة
+rss_feeds = {
+    "BBC عربي": "http://feeds.bbci.co.uk/arabic/rss.xml",
+    "CNN بالعربية": "http://arabic.cnn.com/rss/latest",
+    "RT Arabic": "https://arabic.rt.com/rss/",
+    "France24 عربي": "https://www.france24.com/ar/rss",
+    "الشرق الأوسط": "https://aawsat.com/home/rss.xml"
+}
+
+# اختيار التصنيف
+selected_feed = st.selectbox("اختر مصدر الأخبار:", list(rss_feeds.keys()))
+
+# أو أدخل رابط RSS مخصص
+custom_rss = st.text_input("🛠️ أو أدخل رابط RSS مخصص (اختياري):", value="")
 
 # إدخال الكلمات المفتاحية
-keywords_input = st.text_input("ادخل الكلمات المفتاحية (مفصولة بفواصل):", value="")
+keywords_input = st.text_input("🔎 ادخل الكلمات المفتاحية (مفصولة بفواصل):", value="")
 keywords = [kw.strip() for kw in keywords_input.split(",")] if keywords_input else []
 
 # زرار البحث
 if st.button("🔍 استخراج الأخبار"):
     with st.spinner("جاري استخراج الأخبار..."):
-        news = fetch_news(url, keywords)
-        if news:
+        rss_url = custom_rss if custom_rss else rss_feeds[selected_feed]
+        
+        news, total_entries = fetch_news_from_rss(rss_url, keywords)
+        
+        if total_entries == 0:
+            st.error("❌ المصدر المحدد لا يحتوي على أخبار حالياً أو غير صالح.")
+        elif news:
+            st.success(f"✅ تم العثور على {len(news)} خبر يطابق الكلمات المفتاحية من أصل {total_entries} خبر متاح.")
             df = pd.DataFrame(news)
-            st.success(f"✅ تم استخراج {len(df)} خبر.")
-
             st.dataframe(df)
 
             # حفظ الملف
@@ -94,8 +80,9 @@ if st.button("🔍 استخراج الأخبار"):
             st.download_button(
                 label="📥 تحميل الأخبار كملف Excel",
                 data=output.getvalue(),
-                file_name="آخر_الأخبار_skynews.xlsx",
+                file_name="آخر_الأخبار.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
         else:
-            st.warning("⚠️ لم يتم العثور على أخبار تطابق الشروط.")
+            st.warning(f"⚠️ لم يتم العثور على أخبار تطابق الكلمات، لكن المصدر يحتوي على {total_entries} خبر.")
+
