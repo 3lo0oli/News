@@ -38,7 +38,7 @@ def fetch_news_from_rss(rss_url, keywords):
 # -------- Streamlit App --------
 st.set_page_config(page_title="أداة استخراج الأخبار من مصادر متعددة - النسخة المتقدمة", layout="centered")
 
-st.title("Bravo News👌`")
+st.title("       Bravo News👌      ")
 
 # قائمة التصنيفات الجاهزة
 rss_feeds = {
