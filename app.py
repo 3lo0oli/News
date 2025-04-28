@@ -4,41 +4,28 @@ import pandas as pd
 import io
 from datetime import datetime
 
-# -------- إعداد ديزاين CSS مخصص --------
+# إعداد خلفية الموقع
 st.markdown("""
     <style>
-    /* تغيير لون الخلفية */
     .stApp {
         background-color: #0D1B2A;
-        position: relative;
     }
-
-    /* إضافة صورة الكرة الأرضية في النص */
-    .background-image {
-        position: absolute;
-        top: 80px;
-        left: 50%;
-        transform: translateX(-50%);
-        opacity: 0.1;
-        z-index: 0;
-    }
-
-    /* تنسيق العنوان */
-    .main-title {
-        color: #ffffff;
+    h1 {
         text-align: center;
+        color: white;
         font-size: 60px;
-        margin-bottom: 50px;
-        position: relative;
-        z-index: 1;
+        margin-top: 20px;
     }
-
-    /* تنسيق كل الكتابات */
     label, p, div, span {
         color: #d1d5db !important;
     }
-
-    /* تخصيص الselectbox والtext input */
+    button[kind="primary"] {
+        background-color: #415A77;
+        color: white;
+        font-size: 18px;
+        border-radius: 8px;
+        padding: 10px 20px;
+    }
     .stTextInput > div > div, .stSelectbox > div {
         background-color: #1B263B;
         border-radius: 10px;
@@ -46,24 +33,14 @@ st.markdown("""
         border: 1px solid #415A77;
         padding: 8px;
     }
-
-    /* تخصيص الزر */
-    button[kind="primary"] {
-        background-color: #415A77;
-        color: white;
-        font-size: 18px;
-        border-radius: 8px;
-        padding: 10px 20px;
-        border: none;
-    }
     </style>
-
-    <!-- هنا بنضيف صورة الكرة الأرضية -->
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Earth_Western_Hemisphere_transparent_background.png/600px-Earth_Western_Hemisphere_transparent_background.png" class="background-image" width="300">
 """, unsafe_allow_html=True)
 
-# -------- Streamlit App --------
-st.markdown("<h1 class='main-title'>Bravo News 👌</h1>", unsafe_allow_html=True)
+# إضافة صورة الكرة الأرضية
+st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Earth_Western_Hemisphere_transparent_background.png/600px-Earth_Western_Hemisphere_transparent_background.png", width=250)
+
+# عنوان الموقع
+st.markdown("<h1>Bravo News 👌</h1>", unsafe_allow_html=True)
 
 # قائمة التصنيفات
 rss_feeds = {
@@ -74,17 +51,12 @@ rss_feeds = {
     "الشرق الأوسط": "https://aawsat.com/home/rss.xml"
 }
 
-# اختيار التصنيف
 selected_feed = st.selectbox("اختر مصدر الأخبار:", list(rss_feeds.keys()))
-
-# إدخال رابط مخصص
 custom_rss = st.text_input("🛠️ مخصص لتغذية الأخبار (اختياري):")
-
-# إدخال الكلمات المفتاحية
 keywords_input = st.text_input("🔎 بحث الكلمات المفتاحية (اختياري):")
 keywords = [kw.strip() for kw in keywords_input.split(",")] if keywords_input else []
 
-# -------- استخراج الأخبار --------
+# استخراج الأخبار
 def fetch_news_from_rss(rss_url, keywords):
     feed = feedparser.parse(rss_url)
     news_list = []
@@ -114,7 +86,6 @@ def fetch_news_from_rss(rss_url, keywords):
 
     return news_list, total_entries
 
-# زرار البحث
 if st.button("🔍 استخراج الأخبار"):
     with st.spinner("جاري استخراج الأخبار..."):
         rss_url = custom_rss if custom_rss else rss_feeds[selected_feed]
@@ -128,7 +99,7 @@ if st.button("🔍 استخراج الأخبار"):
             df = pd.DataFrame(news)
             st.dataframe(df)
 
-            # حفظ الملف
+            # تحميل النتائج
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine='openpyxl') as writer:
                 df.to_excel(writer, index=False)
