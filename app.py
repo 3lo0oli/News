@@ -1,9 +1,82 @@
-
 import streamlit as st
 import feedparser
 import pandas as pd
 import io
 from datetime import datetime
+
+# -------- إعداد ديزاين CSS مخصص --------
+st.markdown("""
+    <style>
+    /* تغيير لون خلفية الصفحة */
+    .stApp {
+        background-color: #0D1B2A;
+        background-image: url('https://images.unsplash.com/photo-1603052879461-5085c3eb07d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1400&q=80');
+        background-size: cover;
+        background-position: center;
+    }
+
+    /* تنسيق العنوان */
+    h1 {
+        color: #ffffff;
+        text-align: center;
+        font-size: 60px;
+        margin-bottom: 50px;
+    }
+
+    /* تنسيق النصوص */
+    label, p, div, span {
+        color: #d1d5db !important;
+    }
+
+    /* تخصيص الـ selectbox و الـ input */
+    .stTextInput > div > div, .stSelectbox > div {
+        background-color: #1B263B;
+        border-radius: 10px;
+        color: white;
+        border: 1px solid #415A77;
+        padding: 8px;
+    }
+
+    /* تخصيص الزرار */
+    button[kind="primary"] {
+        background-color: #415A77;
+        color: white;
+        font-size: 18px;
+        border-radius: 8px;
+        padding: 10px 20px;
+        border: none;
+    }
+
+    /* تعديل زر التحميل */
+    .stDownloadButton > button {
+        background-color: #778DA9;
+        color: white;
+        font-weight: bold;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# -------- Streamlit App --------
+st.markdown("<h1>Bravo News 👌</h1>", unsafe_allow_html=True)
+
+# قائمة التصنيفات الجاهزة
+rss_feeds = {
+    "BBC عربي": "http://feeds.bbci.co.uk/arabic/rss.xml",
+    "CNN بالعربية": "http://arabic.cnn.com/rss/latest",
+    "RT Arabic": "https://arabic.rt.com/rss/",
+    "France24 عربي": "https://www.france24.com/ar/rss",
+    "الشرق الأوسط": "https://aawsat.com/home/rss.xml"
+}
+
+# اختيار التصنيف
+selected_feed = st.selectbox("اختر مصدر الأخبار:", list(rss_feeds.keys()))
+
+# أو أدخل رابط RSS مخصص
+custom_rss = st.text_input("🛠️ مخصص لتغذية الأخبار (اختياري):")
+
+# إدخال الكلمات المفتاحية
+keywords_input = st.text_input("🔎 بحث الكلمات المفتاحية (اختياري):")
+keywords = [kw.strip() for kw in keywords_input.split(",")] if keywords_input else []
 
 # -------- استخراج الأخبار من RSS --------
 def fetch_news_from_rss(rss_url, keywords):
@@ -34,32 +107,6 @@ def fetch_news_from_rss(rss_url, keywords):
             })
 
     return news_list, total_entries
-
-# -------- Streamlit App --------
-st.set_page_config(page_title="أداة استخراج الأخبار من مصادر متعددة - النسخة المتقدمة", layout="centered")
-
-st.markdown(
-    "<h1 style='text-align: center;'>Bravo News 👌</h1>",
-    unsafe_allow_html=True)
-
-# قائمة التصنيفات الجاهزة
-rss_feeds = {
-    "BBC عربي": "http://feeds.bbci.co.uk/arabic/rss.xml",
-    "CNN بالعربية": "http://arabic.cnn.com/rss/latest",
-    "RT Arabic": "https://arabic.rt.com/rss/",
-    "France24 عربي": "https://www.france24.com/ar/rss",
-    "الشرق الأوسط": "https://aawsat.com/home/rss.xml"
-}
-
-# اختيار التصنيف
-selected_feed = st.selectbox("اختر مصدر الأخبار:", list(rss_feeds.keys()))
-
-# أو أدخل رابط RSS مخصص
-custom_rss = st.text_input("🛠️ أو أدخل رابط RSS مخصص (اختياري):", value="")
-
-# إدخال الكلمات المفتاحية
-keywords_input = st.text_input("🔎 ادخل الكلمات المفتاحية (مفصولة بفواصل):", value="")
-keywords = [kw.strip() for kw in keywords_input.split(",")] if keywords_input else []
 
 # زرار البحث
 if st.button("🔍 استخراج الأخبار"):
