@@ -4,35 +4,42 @@ import pandas as pd
 import io
 from datetime import datetime
 
-# -- تنسيق الألوان والخلفية الجديدة --
+# -- CSS لتجميل الألوان والـ Selectbox --
 st.markdown(
     """
     <style>
     .stApp {
-        background-color: #121212;
+        background-color: #0F0F0F;
         min-height: 100vh;
         padding-top: 30px;
     }
     h1 {
-        color: #FFFFFF;
+        color: #FAFAFA;
         font-size: 55px;
         text-align: center;
-        font-family: 'Helvetica Neue', sans-serif;
+        font-family: 'Cairo', sans-serif;
         margin-bottom: 10px;
     }
     label, p, div, span {
-        color: #e0e0e0 !important;
-        font-family: 'Arial', sans-serif;
+        color: #CCCCCC !important;
+        font-family: 'Cairo', sans-serif;
+        font-size: 16px;
     }
-    .stTextInput > div > div, .stSelectbox > div {
-        background-color: #1F1F1F;
+    .stSelectbox > div > div, .stTextInput > div > div {
+        background-color: #1F1F1F !important;
+        color: #FAFAFA !important;
+        border: 1px solid #333;
         border-radius: 12px;
-        border: 1px solid #3A3A3A;
         padding: 10px;
-        color: white;
+    }
+    .stSelectbox > div > div:hover {
+        border: 1px solid #555;
+    }
+    .stTextInput > div > div:hover {
+        border: 1px solid #555;
     }
     button[kind="primary"] {
-        background: linear-gradient(90deg, #00BFFF, #1E90FF);
+        background: linear-gradient(90deg, #00B894, #00CEC9);
         color: white;
         font-size: 20px;
         border-radius: 12px;
@@ -42,25 +49,25 @@ st.markdown(
         transition: 0.3s;
     }
     button[kind="primary"]:hover {
-        background: linear-gradient(90deg, #1E90FF, #00BFFF);
+        background: linear-gradient(90deg, #00CEC9, #00B894);
         color: white;
     }
     hr {
         margin: 2rem 0;
         border: 0;
-        border-top: 1px solid #3A3A3A;
+        border-top: 1px solid #333;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# -- العنوان الجديد مع الكورة الأرضية 🌍 بعد النص بدون الإيد 👌 --
+# -- العنوان مع كورة الأرض الجديدة --
 st.markdown("<h1>Bravo News 🌍</h1>", unsafe_allow_html=True)
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# -- المصادر الجاهزة --
+# -- مصادر الأخبار --
 rss_feeds = {
     "BBC عربي": "http://feeds.bbci.co.uk/arabic/rss.xml",
     "CNN بالعربية": "http://arabic.cnn.com/rss/latest",
@@ -69,7 +76,7 @@ rss_feeds = {
     "الشرق الأوسط": "https://aawsat.com/home/rss.xml"
 }
 
-# -- واجهة المستخدم --
+# -- إدخال المستخدم --
 selected_feed = st.selectbox("اختر مصدر الأخبار:", list(rss_feeds.keys()))
 custom_rss = st.text_input("🛠️ مخصص لتغذية الأخبار (اختياري):")
 keywords_input = st.text_input("🔎 بحث بالكلمات المفتاحية (اختياري):")
@@ -105,7 +112,7 @@ def fetch_news_from_rss(rss_url, keywords):
 
     return news_list, total_entries
 
-# -- زر استخراج الأخبار --
+# -- زر لاستخراج الأخبار --
 if st.button("🔍 استخراج الأخبار"):
     with st.spinner("⏳ جاري استخراج الأخبار..."):
         rss_url = custom_rss if custom_rss else rss_feeds[selected_feed]
