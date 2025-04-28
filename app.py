@@ -4,7 +4,7 @@ import pandas as pd
 import io
 from datetime import datetime
 
-# -- CSS لتجميل الصفحة --
+# -- تنسيق الخلفية والألوان --
 st.markdown(
     """
     <style>
@@ -55,14 +55,8 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# -- صف الصورة والعنوان --
-col1, col2 = st.columns([1, 5])
-
-with col1:
-    st.image("./ea2bbe39-f62f-49b5-9d0c-e83cea04cf3a.png", width=80)  # الصورة الجديدة اللي رفعتها
-
-with col2:
-    st.markdown("<h1>Bravo News 👌</h1>", unsafe_allow_html=True)
+# -- العنوان مع ايموجي كورة الأرضية 🌍 --
+st.markdown("<h1>🌍 Bravo News 👌</h1>", unsafe_allow_html=True)
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
@@ -75,7 +69,7 @@ rss_feeds = {
     "الشرق الأوسط": "https://aawsat.com/home/rss.xml"
 }
 
-# -- إدخال خيارات المستخدم --
+# -- إدخال المستخدم --
 selected_feed = st.selectbox("اختر مصدر الأخبار:", list(rss_feeds.keys()))
 custom_rss = st.text_input("🛠️ مخصص لتغذية الأخبار (اختياري):")
 keywords_input = st.text_input("🔎 بحث بالكلمات المفتاحية (اختياري):")
@@ -111,7 +105,7 @@ def fetch_news_from_rss(rss_url, keywords):
 
     return news_list, total_entries
 
-# -- زرار استخراج الأخبار --
+# -- زر استخراج الأخبار --
 if st.button("🔍 استخراج الأخبار"):
     with st.spinner("⏳ جاري استخراج الأخبار..."):
         rss_url = custom_rss if custom_rss else rss_feeds[selected_feed]
@@ -125,7 +119,6 @@ if st.button("🔍 استخراج الأخبار"):
             df = pd.DataFrame(news)
             st.dataframe(df)
 
-            # تحميل ملف Excel
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine='openpyxl') as writer:
                 df.to_excel(writer, index=False)
