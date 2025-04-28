@@ -4,7 +4,7 @@ import pandas as pd
 import io
 from datetime import datetime
 
-# -- CSS كامل لتنسيق كل شيء صح --
+# -- CSS معدلة صح ومجربة --
 st.markdown("""
     <style>
     .stApp {
@@ -16,7 +16,7 @@ st.markdown("""
     h1 {
         color: #222;
         text-align: center;
-        font-size: 55px;
+        font-size: 50px;
         font-family: 'Cairo', sans-serif;
         margin-bottom: 20px;
     }
@@ -27,18 +27,24 @@ st.markdown("""
         font-size: 16px;
     }
 
-    .stTextInput > div > div,
-    .stSelectbox > div > div:first-child {
-        background-color: #ffffff;
-        color: #111111;
-        font-weight: 600;
+    /* نعدل فقط مكان عرض الاختيار مش القايمة */
+    .stSelectbox > div:first-child {
+        background-color: #fff !important;
+        color: #222 !important;
         border-radius: 12px;
         padding: 10px;
-        border: none;
+        font-weight: 600;
     }
 
-    /* زرار عادي */
-    button[kind="primary"]:enabled {
+    .stTextInput > div > div {
+        background-color: #fff !important;
+        color: #111 !important;
+        border-radius: 12px;
+        padding: 10px;
+        font-weight: 600;
+    }
+
+    button[kind="primary"] {
         background: #0D47A1;
         color: white;
         font-size: 18px;
@@ -48,26 +54,13 @@ st.markdown("""
         transition: 0.3s;
     }
 
-    /* زرار مفعّل عليه الماوس */
-    button[kind="primary"]:enabled:hover {
+    button[kind="primary"]:hover {
         background: #1565C0;
-        color: white;
     }
-
-    /* زرار مقفول (Disabled) */
-    button[kind="primary"]:disabled {
-        background-color: #555555 !important;
-        color: #cccccc !important;
-        border-radius: 12px;
-        padding: 12px 25px;
-        font-size: 18px;
-        border: none;
-    }
-
     </style>
 """, unsafe_allow_html=True)
 
-# -- العنوان --
+# -- العنوان Bravo News 🌍 --
 st.markdown("<h1>Bravo News 🌍</h1>", unsafe_allow_html=True)
 st.markdown("<hr>", unsafe_allow_html=True)
 
