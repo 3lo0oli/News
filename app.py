@@ -4,7 +4,7 @@ import pandas as pd
 import io
 from datetime import datetime
 
-# -- CSS كامل لتعديل الألوان حسب طلبك --
+# -- تنسيق CSS كامل لحل كل مشاكل الألوان والنصوص --
 st.markdown(
     """
     <style>
@@ -23,14 +23,14 @@ st.markdown(
         margin-bottom: 20px;
     }
 
-    /* العناوين الجانبية والنصوص */
+    /* النصوص العادية */
     label, p, span {
         color: #eeeeee !important;
         font-family: 'Cairo', sans-serif;
         font-size: 16px;
     }
 
-    /* الحقول */
+    /* الحقول Input + Selectbox */
     .stTextInput > div > div,
     .stSelectbox > div > div {
         background-color: #ffffff !important;
@@ -41,12 +41,27 @@ st.markdown(
         padding: 10px;
     }
 
-    /* النص داخل السيلكت */
-    .stSelectbox div[data-baseweb="select"] * {
+    /* القائمة المفتوحة للدروبوكس */
+    div[data-baseweb="select"] > div {
+        background-color: #ffffff !important;
         color: #111111 !important;
+        font-weight: 600 !important;
     }
 
-    /* زرار */
+    /* النصوص داخل خيارات الدروبوكس */
+    div[data-baseweb="select"] div[role="option"] {
+        background-color: #ffffff !important;
+        color: #111111 !important;
+        font-weight: 600;
+    }
+
+    /* العنصر المختار لما تدوس عليه */
+    div[data-baseweb="select"] div[aria-selected="true"] {
+        background-color: #e0e0e0 !important;
+        color: #000000 !important;
+    }
+
+    /* زرار البحث */
     button[kind="primary"] {
         background: #0D47A1;
         color: white;
@@ -56,6 +71,7 @@ st.markdown(
         border: none;
         transition: 0.3s;
     }
+
     button[kind="primary"]:hover {
         background: #1565C0;
     }
@@ -65,12 +81,12 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# -- العنوان Bravo News 🌍 --
+# -- عنوان الصفحة --
 st.markdown("<h1>Bravo News 🌍</h1>", unsafe_allow_html=True)
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# -- مصادر الأخبار --
+# -- مصادر الأخبار الجاهزة --
 rss_feeds = {
     "BBC Arabic": "http://feeds.bbci.co.uk/arabic/rss.xml",
     "CNN Arabic": "http://arabic.cnn.com/rss/latest",
@@ -79,13 +95,13 @@ rss_feeds = {
     "Asharq Al-Awsat": "https://aawsat.com/home/rss.xml"
 }
 
-# -- واجهة المستخدم --
+# -- عناصر واجهة المستخدم --
 selected_feed = st.selectbox("Choose a news source:", list(rss_feeds.keys()))
 custom_rss = st.text_input("🛠️ Custom RSS (optional):")
 keywords_input = st.text_input("🔎 Search by keywords (optional):")
 keywords = [kw.strip() for kw in keywords_input.split(",")] if keywords_input else []
 
-# -- دالة استخراج الأخبار --
+# -- دالة جلب الأخبار من رابط RSS --
 def fetch_news_from_rss(rss_url, keywords):
     feed = feedparser.parse(rss_url)
     news_list = []
@@ -115,7 +131,7 @@ def fetch_news_from_rss(rss_url, keywords):
 
     return news_list, total_entries
 
-# -- زر استخراج الأخبار --
+# -- زرار استخراج الأخبار --
 if st.button("🔍 Extract News"):
     with st.spinner("⏳ Fetching news..."):
         rss_url = custom_rss if custom_rss else rss_feeds[selected_feed]
@@ -129,6 +145,7 @@ if st.button("🔍 Extract News"):
             df = pd.DataFrame(news)
             st.dataframe(df)
 
+            # حفظ الأخبار كملف Excel
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine='openpyxl') as writer:
                 df.to_excel(writer, index=False)
