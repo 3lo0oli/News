@@ -4,30 +4,21 @@ import pandas as pd
 import io
 from datetime import datetime
 
-# ---- تنسيق CSS ----
+# -- تنسيق خلفية الصفحة وألوان النصوص --
 st.markdown(
     """
     <style>
     .stApp {
         background-color: #0D1B2A;
-        background-image: url('https://raw.githubusercontent.com/AmrAlaa22255/bravo-news-assets/main/earth-from-moon.jpg'); /* رابط الصورة */
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
     }
-
     h1 {
-        text-align: center;
         color: white;
-        font-size: 60px;
-        margin-top: 20px;
+        font-size: 50px;
+        margin: 0px;
     }
-
     label, p, div, span {
         color: #d1d5db !important;
     }
-
     .stTextInput > div > div, .stSelectbox > div {
         background-color: #1B263B;
         border-radius: 10px;
@@ -35,7 +26,6 @@ st.markdown(
         padding: 8px;
         color: white;
     }
-
     button[kind="primary"] {
         background-color: #415A77;
         color: white;
@@ -48,10 +38,18 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ---- عنوان ----
-st.markdown("<h1>Bravo News 👌</h1>", unsafe_allow_html=True)
+# -- إنشاء صف فيه الصورة والعنوان مع بعض --
+col1, col2 = st.columns([1, 5])
 
-# ---- مصادر الأخبار ----
+with col1:
+    st.image("20255.jpg", width=80)  # لو الصورة محفوظة محليًا بجانب الكود
+
+with col2:
+    st.markdown("<h1>Bravo News 👌</h1>", unsafe_allow_html=True)
+
+st.markdown("---")  # خط فاصل جمالي
+
+# -- قائمة المصادر --
 rss_feeds = {
     "BBC عربي": "http://feeds.bbci.co.uk/arabic/rss.xml",
     "CNN بالعربية": "http://arabic.cnn.com/rss/latest",
@@ -60,12 +58,13 @@ rss_feeds = {
     "الشرق الأوسط": "https://aawsat.com/home/rss.xml"
 }
 
+# -- اختيارات المستخدم --
 selected_feed = st.selectbox("اختر مصدر الأخبار:", list(rss_feeds.keys()))
 custom_rss = st.text_input("🛠️ مخصص لتغذية الأخبار (اختياري):")
 keywords_input = st.text_input("🔎 بحث الكلمات المفتاحية (اختياري):")
 keywords = [kw.strip() for kw in keywords_input.split(",")] if keywords_input else []
 
-# ---- دالة استخراج الأخبار ----
+# -- دالة استخراج الأخبار --
 def fetch_news_from_rss(rss_url, keywords):
     feed = feedparser.parse(rss_url)
     news_list = []
@@ -95,7 +94,7 @@ def fetch_news_from_rss(rss_url, keywords):
 
     return news_list, total_entries
 
-# ---- زرار استخراج الأخبار ----
+# -- زرار استخراج الأخبار --
 if st.button("🔍 استخراج الأخبار"):
     with st.spinner("جاري استخراج الأخبار..."):
         rss_url = custom_rss if custom_rss else rss_feeds[selected_feed]
