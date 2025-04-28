@@ -4,7 +4,7 @@ import pandas as pd
 import io
 from datetime import datetime
 
-# -- CSS للتنسيق النهائي المطلوب --
+# -- CSS كامل لتعديل الألوان حسب طلبك --
 st.markdown(
     """
     <style>
@@ -13,33 +13,40 @@ st.markdown(
         min-height: 100vh;
         padding-top: 30px;
     }
+
+    /* عنوان الصفحة */
     h1 {
-        color: #FFFFFF;
-        font-size: 50px;
+        color: #222222;
+        font-size: 55px;
         text-align: center;
         font-family: 'Cairo', sans-serif;
         margin-bottom: 20px;
     }
+
+    /* العناوين الجانبية والنصوص */
     label, p, span {
-        color: #EEEEEE !important;
+        color: #eeeeee !important;
         font-family: 'Cairo', sans-serif;
+        font-size: 16px;
     }
+
+    /* الحقول */
     .stTextInput > div > div,
     .stSelectbox > div > div {
-        background-color: rgba(255, 255, 255, 0.85) !important;
-        color: #222222 !important;
+        background-color: #ffffff !important;
+        color: #111111 !important;
+        font-weight: 600;
         border-radius: 12px;
         border: none;
         padding: 10px;
     }
-    .stSelectbox div[data-baseweb="select"] div {
-        color: #222 !important;
-        font-weight: 500;
+
+    /* النص داخل السيلكت */
+    .stSelectbox div[data-baseweb="select"] * {
+        color: #111111 !important;
     }
-    .stSelectbox div[data-baseweb="select"] {
-        background-color: rgba(255, 255, 255, 0.9) !important;
-        border-radius: 12px;
-    }
+
+    /* زرار */
     button[kind="primary"] {
         background: #0D47A1;
         color: white;
@@ -51,17 +58,16 @@ st.markdown(
     }
     button[kind="primary"]:hover {
         background: #1565C0;
-        color: white;
     }
+
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# -- العنوان بعد التعديل --
+# -- العنوان Bravo News 🌍 --
 st.markdown("<h1>Bravo News 🌍</h1>", unsafe_allow_html=True)
 
-# -- خط فاصل جمالي
 st.markdown("<hr>", unsafe_allow_html=True)
 
 # -- مصادر الأخبار --
@@ -73,7 +79,7 @@ rss_feeds = {
     "Asharq Al-Awsat": "https://aawsat.com/home/rss.xml"
 }
 
-# -- إدخالات المستخدم --
+# -- واجهة المستخدم --
 selected_feed = st.selectbox("Choose a news source:", list(rss_feeds.keys()))
 custom_rss = st.text_input("🛠️ Custom RSS (optional):")
 keywords_input = st.text_input("🔎 Search by keywords (optional):")
