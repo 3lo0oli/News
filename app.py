@@ -4,42 +4,51 @@ import pandas as pd
 import io
 from datetime import datetime
 
-# إعداد خلفية الموقع
-st.markdown("""
+# ---- إعداد الخلفية مع صورة الكرة الأرضية ----
+st.markdown(
+    f"""
     <style>
-    .stApp {
+    .stApp {{
         background-color: #0D1B2A;
-    }
-    h1 {
+        background-image: url('https://i.postimg.cc/WpZGWN5M/earth-bg.png'); /* حط هنا رابط الكرة الأرضية */
+        background-size: 400px;
+        background-repeat: no-repeat;
+        background-position: center 100px;
+        opacity: 1;
+    }}
+
+    /* تنسيق العنوان */
+    h1 {{
         text-align: center;
         color: white;
         font-size: 60px;
         margin-top: 20px;
-    }
-    label, p, div, span {
+    }}
+
+    /* تعديل النصوص والأزرار */
+    label, p, div, span {{
         color: #d1d5db !important;
-    }
-    button[kind="primary"] {
+    }}
+    .stTextInput > div > div, .stSelectbox > div {{
+        background-color: #1B263B;
+        border-radius: 10px;
+        border: 1px solid #415A77;
+        padding: 8px;
+        color: white;
+    }}
+    button[kind="primary"] {{
         background-color: #415A77;
         color: white;
         font-size: 18px;
         border-radius: 8px;
         padding: 10px 20px;
-    }
-    .stTextInput > div > div, .stSelectbox > div {
-        background-color: #1B263B;
-        border-radius: 10px;
-        color: white;
-        border: 1px solid #415A77;
-        padding: 8px;
-    }
+    }}
     </style>
-""", unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True
+)
 
-# إضافة صورة الكرة الأرضية
-st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Earth_Western_Hemisphere_transparent_background.png/600px-Earth_Western_Hemisphere_transparent_background.png", width=250)
-
-# عنوان الموقع
+# ---- الواجهة ----
 st.markdown("<h1>Bravo News 👌</h1>", unsafe_allow_html=True)
 
 # قائمة التصنيفات
@@ -56,7 +65,7 @@ custom_rss = st.text_input("🛠️ مخصص لتغذية الأخبار (اخت
 keywords_input = st.text_input("🔎 بحث الكلمات المفتاحية (اختياري):")
 keywords = [kw.strip() for kw in keywords_input.split(",")] if keywords_input else []
 
-# استخراج الأخبار
+# ---- استخراج الأخبار ----
 def fetch_news_from_rss(rss_url, keywords):
     feed = feedparser.parse(rss_url)
     news_list = []
