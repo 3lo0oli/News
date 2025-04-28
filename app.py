@@ -4,12 +4,12 @@ import pandas as pd
 import io
 from datetime import datetime
 
-# -- تنسيق الخلفية والألوان --
+# -- تنسيق الألوان والخلفية الجديدة --
 st.markdown(
     """
     <style>
     .stApp {
-        background: linear-gradient(135deg, #0D1B2A, #1B263B);
+        background-color: #121212;
         min-height: 100vh;
         padding-top: 30px;
     }
@@ -21,18 +21,18 @@ st.markdown(
         margin-bottom: 10px;
     }
     label, p, div, span {
-        color: #d1d5db !important;
+        color: #e0e0e0 !important;
         font-family: 'Arial', sans-serif;
     }
     .stTextInput > div > div, .stSelectbox > div {
-        background-color: #243447;
+        background-color: #1F1F1F;
         border-radius: 12px;
-        border: 1px solid #415A77;
+        border: 1px solid #3A3A3A;
         padding: 10px;
         color: white;
     }
     button[kind="primary"] {
-        background: linear-gradient(90deg, #4CAF50, #2E7D32);
+        background: linear-gradient(90deg, #00BFFF, #1E90FF);
         color: white;
         font-size: 20px;
         border-radius: 12px;
@@ -42,21 +42,21 @@ st.markdown(
         transition: 0.3s;
     }
     button[kind="primary"]:hover {
-        background: linear-gradient(90deg, #66BB6A, #388E3C);
+        background: linear-gradient(90deg, #1E90FF, #00BFFF);
         color: white;
     }
     hr {
         margin: 2rem 0;
         border: 0;
-        border-top: 1px solid #415A77;
+        border-top: 1px solid #3A3A3A;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# -- العنوان مع ايموجي كورة الأرضية 🌍 --
-st.markdown("<h1>🌍 Bravo News 👌</h1>", unsafe_allow_html=True)
+# -- العنوان الجديد مع الكورة الأرضية 🌍 بعد النص بدون الإيد 👌 --
+st.markdown("<h1>Bravo News 🌍</h1>", unsafe_allow_html=True)
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
@@ -69,7 +69,7 @@ rss_feeds = {
     "الشرق الأوسط": "https://aawsat.com/home/rss.xml"
 }
 
-# -- إدخال المستخدم --
+# -- واجهة المستخدم --
 selected_feed = st.selectbox("اختر مصدر الأخبار:", list(rss_feeds.keys()))
 custom_rss = st.text_input("🛠️ مخصص لتغذية الأخبار (اختياري):")
 keywords_input = st.text_input("🔎 بحث بالكلمات المفتاحية (اختياري):")
