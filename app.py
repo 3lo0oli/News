@@ -4,12 +4,12 @@ import pandas as pd
 import io
 from datetime import datetime
 
-# -- CSS للتنسيق زي الصورة اللي بعتهالي --
+# -- CSS للتنسيق النهائي المطلوب --
 st.markdown(
     """
     <style>
     .stApp {
-        background: linear-gradient(135deg, #5C258D, #4389A2);
+        background: linear-gradient(135deg, #6a11cb, #2575fc);
         min-height: 100vh;
         padding-top: 30px;
     }
@@ -20,23 +20,28 @@ st.markdown(
         font-family: 'Cairo', sans-serif;
         margin-bottom: 20px;
     }
-    label, p, div, span {
+    label, p, span {
         color: #EEEEEE !important;
         font-family: 'Cairo', sans-serif;
-        font-size: 16px;
     }
-    .stTextInput > div > div, .stSelectbox > div > div {
-        background-color: rgba(255, 255, 255, 0.1) !important;
+    .stTextInput > div > div,
+    .stSelectbox > div > div {
+        background-color: rgba(255, 255, 255, 0.85) !important;
+        color: #222222 !important;
         border-radius: 12px;
-        padding: 10px;
-        color: #FFFFFF !important;
         border: none;
+        padding: 10px;
     }
-    .stTextInput > div > div:hover, .stSelectbox > div > div:hover {
-        background-color: rgba(255, 255, 255, 0.15) !important;
+    .stSelectbox div[data-baseweb="select"] div {
+        color: #222 !important;
+        font-weight: 500;
+    }
+    .stSelectbox div[data-baseweb="select"] {
+        background-color: rgba(255, 255, 255, 0.9) !important;
+        border-radius: 12px;
     }
     button[kind="primary"] {
-        background-color: #0D47A1;
+        background: #0D47A1;
         color: white;
         font-size: 18px;
         border-radius: 12px;
@@ -45,37 +50,33 @@ st.markdown(
         transition: 0.3s;
     }
     button[kind="primary"]:hover {
-        background-color: #1565C0;
+        background: #1565C0;
         color: white;
-    }
-    hr {
-        margin: 2rem 0;
-        border: 0;
-        border-top: 1px solid rgba(255, 255, 255, 0.2);
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# -- العنوان زي اللي في الصورة --
-st.markdown("<h1>برافو الإخباري 👍</h1>", unsafe_allow_html=True)
+# -- العنوان بعد التعديل --
+st.markdown("<h1>Bravo News 🌍</h1>", unsafe_allow_html=True)
 
+# -- خط فاصل جمالي
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# -- قائمة الأخبار --
+# -- مصادر الأخبار --
 rss_feeds = {
-    "BBC عربي": "http://feeds.bbci.co.uk/arabic/rss.xml",
-    "CNN بالعربية": "http://arabic.cnn.com/rss/latest",
+    "BBC Arabic": "http://feeds.bbci.co.uk/arabic/rss.xml",
+    "CNN Arabic": "http://arabic.cnn.com/rss/latest",
     "RT Arabic": "https://arabic.rt.com/rss/",
-    "France24 عربي": "https://www.france24.com/ar/rss",
-    "الشرق الأوسط": "https://aawsat.com/home/rss.xml"
+    "France24 Arabic": "https://www.france24.com/ar/rss",
+    "Asharq Al-Awsat": "https://aawsat.com/home/rss.xml"
 }
 
 # -- إدخالات المستخدم --
-selected_feed = st.selectbox("اختر مصدر الأخبار:", list(rss_feeds.keys()))
-custom_rss = st.text_input("🛠️ مخصص لتغذية الأخبار (اختياري):")
-keywords_input = st.text_input("🔎 بحث بالكلمات المفتاحية (اختياري):")
+selected_feed = st.selectbox("Choose a news source:", list(rss_feeds.keys()))
+custom_rss = st.text_input("🛠️ Custom RSS (optional):")
+keywords_input = st.text_input("🔎 Search by keywords (optional):")
 keywords = [kw.strip() for kw in keywords_input.split(",")] if keywords_input else []
 
 # -- دالة استخراج الأخبار --
@@ -93,32 +94,32 @@ def fetch_news_from_rss(rss_url, keywords):
         if keywords:
             if any(keyword.lower() in (title + " " + summary).lower() for keyword in keywords):
                 news_list.append({
-                    "تاريخ النشر": published,
-                    "العنوان": title,
-                    "الوصف": summary,
-                    "الرابط": link
+                    "Published": published,
+                    "Title": title,
+                    "Summary": summary,
+                    "Link": link
                 })
         else:
             news_list.append({
-                "تاريخ النشر": published,
-                "العنوان": title,
-                "الوصف": summary,
-                "الرابط": link
+                "Published": published,
+                "Title": title,
+                "Summary": summary,
+                "Link": link
             })
 
     return news_list, total_entries
 
-# -- زرار استخراج الأخبار --
-if st.button("🔍 استخرج الأخبار"):
-    with st.spinner("⏳ جاري استخراج الأخبار..."):
+# -- زر استخراج الأخبار --
+if st.button("🔍 Extract News"):
+    with st.spinner("⏳ Fetching news..."):
         rss_url = custom_rss if custom_rss else rss_feeds[selected_feed]
         
         news, total_entries = fetch_news_from_rss(rss_url, keywords)
         
         if total_entries == 0:
-            st.error("❌ المصدر المحدد لا يحتوي على أخبار حالياً أو الرابط غير صالح.")
+            st.error("❌ The selected feed has no current news or is invalid.")
         elif news:
-            st.success(f"✅ تم العثور على {len(news)} خبر يطابق البحث من أصل {total_entries} خبر متاح.")
+            st.success(f"✅ Found {len(news)} matching articles out of {total_entries} available.")
             df = pd.DataFrame(news)
             st.dataframe(df)
 
@@ -126,10 +127,10 @@ if st.button("🔍 استخرج الأخبار"):
             with pd.ExcelWriter(output, engine='openpyxl') as writer:
                 df.to_excel(writer, index=False)
             st.download_button(
-                label="📥 تحميل الأخبار كملف Excel",
+                label="📥 Download as Excel",
                 data=output.getvalue(),
-                file_name="آخر_الأخبار.xlsx",
+                file_name="bravo_news.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
         else:
-            st.warning(f"⚠️ لم يتم العثور على أخبار تطابق الكلمات، لكن المصدر يحتوي على {total_entries} خبر.")
+            st.warning(f"⚠️ No matching news found, but {total_entries} items exist in the feed.")
