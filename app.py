@@ -4,7 +4,7 @@ import pandas as pd
 import io
 from datetime import datetime
 
-# -- تنسيق CSS كامل لحل كل مشاكل الألوان والنصوص --
+# -- CSS مظبوط من غير تخريب الدروبوكس --
 st.markdown(
     """
     <style>
@@ -13,8 +13,6 @@ st.markdown(
         min-height: 100vh;
         padding-top: 30px;
     }
-
-    /* عنوان الصفحة */
     h1 {
         color: #222222;
         font-size: 55px;
@@ -22,46 +20,24 @@ st.markdown(
         font-family: 'Cairo', sans-serif;
         margin-bottom: 20px;
     }
-
-    /* النصوص العادية */
     label, p, span {
         color: #eeeeee !important;
         font-family: 'Cairo', sans-serif;
         font-size: 16px;
     }
 
-    /* الحقول Input + Selectbox */
+    /* مظهر حقول الإدخال فقط بدون اللعب في الـSelect نفسه */
     .stTextInput > div > div,
-    .stSelectbox > div > div {
-        background-color: #ffffff !important;
-        color: #111111 !important;
+    .stSelectbox > div > div:first-child {
+        background-color: #ffffff;
+        color: #111111;
         font-weight: 600;
         border-radius: 12px;
-        border: none;
         padding: 10px;
+        border: none;
     }
 
-    /* القائمة المفتوحة للدروبوكس */
-    div[data-baseweb="select"] > div {
-        background-color: #ffffff !important;
-        color: #111111 !important;
-        font-weight: 600 !important;
-    }
-
-    /* النصوص داخل خيارات الدروبوكس */
-    div[data-baseweb="select"] div[role="option"] {
-        background-color: #ffffff !important;
-        color: #111111 !important;
-        font-weight: 600;
-    }
-
-    /* العنصر المختار لما تدوس عليه */
-    div[data-baseweb="select"] div[aria-selected="true"] {
-        background-color: #e0e0e0 !important;
-        color: #000000 !important;
-    }
-
-    /* زرار البحث */
+    /* الزرار */
     button[kind="primary"] {
         background: #0D47A1;
         color: white;
@@ -71,22 +47,20 @@ st.markdown(
         border: none;
         transition: 0.3s;
     }
-
     button[kind="primary"]:hover {
         background: #1565C0;
     }
-
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# -- عنوان الصفحة --
+# -- العنوان Bravo News 🌍 --
 st.markdown("<h1>Bravo News 🌍</h1>", unsafe_allow_html=True)
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# -- مصادر الأخبار الجاهزة --
+# -- مصادر الأخبار --
 rss_feeds = {
     "BBC Arabic": "http://feeds.bbci.co.uk/arabic/rss.xml",
     "CNN Arabic": "http://arabic.cnn.com/rss/latest",
@@ -95,13 +69,13 @@ rss_feeds = {
     "Asharq Al-Awsat": "https://aawsat.com/home/rss.xml"
 }
 
-# -- عناصر واجهة المستخدم --
-selected_feed = st.selectbox("Choose a news source:", list(rss_feeds.keys()))
+# -- واجهة المستخدم --
+selected_feed = st.selectbox("Choose a news source:", ["Choose an option"] + list(rss_feeds.keys()))
 custom_rss = st.text_input("🛠️ Custom RSS (optional):")
 keywords_input = st.text_input("🔎 Search by keywords (optional):")
 keywords = [kw.strip() for kw in keywords_input.split(",")] if keywords_input else []
 
-# -- دالة جلب الأخبار من رابط RSS --
+# -- دالة جلب الأخبار --
 def fetch_news_from_rss(rss_url, keywords):
     feed = feedparser.parse(rss_url)
     news_list = []
@@ -133,27 +107,29 @@ def fetch_news_from_rss(rss_url, keywords):
 
 # -- زرار استخراج الأخبار --
 if st.button("🔍 Extract News"):
-    with st.spinner("⏳ Fetching news..."):
-        rss_url = custom_rss if custom_rss else rss_feeds[selected_feed]
-        
-        news, total_entries = fetch_news_from_rss(rss_url, keywords)
-        
-        if total_entries == 0:
-            st.error("❌ The selected feed has no current news or is invalid.")
-        elif news:
-            st.success(f"✅ Found {len(news)} matching articles out of {total_entries} available.")
-            df = pd.DataFrame(news)
-            st.dataframe(df)
+    if selected_feed == "Choose an option":
+        st.error("⚠️ Please select a valid news source!")
+    else:
+        with st.spinner("⏳ Fetching news..."):
+            rss_url = custom_rss if custom_rss else rss_feeds[selected_feed]
 
-            # حفظ الأخبار كملف Excel
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                df.to_excel(writer, index=False)
-            st.download_button(
-                label="📥 Download as Excel",
-                data=output.getvalue(),
-                file_name="bravo_news.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-        else:
-            st.warning(f"⚠️ No matching news found, but {total_entries} items exist in the feed.")
+            news, total_entries = fetch_news_from_rss(rss_url, keywords)
+
+            if total_entries == 0:
+                st.error("❌ The selected feed has no current news or is invalid.")
+            elif news:
+                st.success(f"✅ Found {len(news)} matching articles out of {total_entries} available.")
+                df = pd.DataFrame(news)
+                st.dataframe(df)
+
+                output = io.BytesIO()
+                with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                    df.to_excel(writer, index=False)
+                st.download_button(
+                    label="📥 Download as Excel",
+                    data=output.getvalue(),
+                    file_name="bravo_news.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            else:
+                st.warning(f"⚠️ No matching news found, but {total_entries} items exist in the feed.")
