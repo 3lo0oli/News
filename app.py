@@ -4,7 +4,7 @@ import pandas as pd
 import io
 from datetime import datetime
 
-# -- تنسيق خلفية الصفحة وألوان النصوص --
+# -- إعداد خلفية الصفحة والألوان --
 st.markdown(
     """
     <style>
@@ -38,18 +38,18 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# -- إنشاء صف فيه الصورة والعنوان مع بعض --
+# -- صف يحتوي على صورة الأرض + العنوان --
 col1, col2 = st.columns([1, 5])
 
 with col1:
-    st.image("20255.jpg", width=80)  # لو الصورة محفوظة محليًا بجانب الكود
+    st.image("https://drive.google.com/uc?id=1YG_HCPBPdOXAZQtPswMcKK5OEltg3xYq", width=80)  # رابط مباشر من Google Drive
 
 with col2:
     st.markdown("<h1>Bravo News 👌</h1>", unsafe_allow_html=True)
 
 st.markdown("---")  # خط فاصل جمالي
 
-# -- قائمة المصادر --
+# -- مصادر الأخبار --
 rss_feeds = {
     "BBC عربي": "http://feeds.bbci.co.uk/arabic/rss.xml",
     "CNN بالعربية": "http://arabic.cnn.com/rss/latest",
@@ -58,13 +58,13 @@ rss_feeds = {
     "الشرق الأوسط": "https://aawsat.com/home/rss.xml"
 }
 
-# -- اختيارات المستخدم --
+# -- واجهة المستخدم --
 selected_feed = st.selectbox("اختر مصدر الأخبار:", list(rss_feeds.keys()))
 custom_rss = st.text_input("🛠️ مخصص لتغذية الأخبار (اختياري):")
 keywords_input = st.text_input("🔎 بحث الكلمات المفتاحية (اختياري):")
 keywords = [kw.strip() for kw in keywords_input.split(",")] if keywords_input else []
 
-# -- دالة استخراج الأخبار --
+# -- دالة استخراج الأخبار من RSS --
 def fetch_news_from_rss(rss_url, keywords):
     feed = feedparser.parse(rss_url)
     news_list = []
@@ -94,7 +94,7 @@ def fetch_news_from_rss(rss_url, keywords):
 
     return news_list, total_entries
 
-# -- زرار استخراج الأخبار --
+# -- زرار لاستخراج الأخبار --
 if st.button("🔍 استخراج الأخبار"):
     with st.spinner("جاري استخراج الأخبار..."):
         rss_url = custom_rss if custom_rss else rss_feeds[selected_feed]
@@ -108,6 +108,7 @@ if st.button("🔍 استخراج الأخبار"):
             df = pd.DataFrame(news)
             st.dataframe(df)
 
+            # -- تحميل ملف Excel --
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine='openpyxl') as writer:
                 df.to_excel(writer, index=False)
