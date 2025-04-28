@@ -4,31 +4,30 @@ import pandas as pd
 import io
 from datetime import datetime
 
-# ---- إعداد الخلفية مع صورة الكرة الأرضية ----
+# إعداد الخلفية مع صورة الكرة الأرضية الأصلية اللي رفعتها
 st.markdown(
     f"""
     <style>
     .stApp {{
         background-color: #0D1B2A;
-        background-image: url('https://i.postimg.cc/WpZGWN5M/earth-bg.png'); /* حط هنا رابط الكرة الأرضية */
+        background-image: url('https://raw.githubusercontent.com/AmrAlaa22255/bravo-news-assets/main/earth-background.png');
         background-size: 400px;
         background-repeat: no-repeat;
-        background-position: center 100px;
+        background-position: center 120px;
         opacity: 1;
     }}
 
-    /* تنسيق العنوان */
     h1 {{
         text-align: center;
         color: white;
         font-size: 60px;
-        margin-top: 20px;
+        margin-top: 50px;
     }}
 
-    /* تعديل النصوص والأزرار */
     label, p, div, span {{
         color: #d1d5db !important;
     }}
+
     .stTextInput > div > div, .stSelectbox > div {{
         background-color: #1B263B;
         border-radius: 10px;
@@ -36,6 +35,7 @@ st.markdown(
         padding: 8px;
         color: white;
     }}
+
     button[kind="primary"] {{
         background-color: #415A77;
         color: white;
@@ -48,7 +48,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ---- الواجهة ----
+# العنوان
 st.markdown("<h1>Bravo News 👌</h1>", unsafe_allow_html=True)
 
 # قائمة التصنيفات
@@ -65,7 +65,7 @@ custom_rss = st.text_input("🛠️ مخصص لتغذية الأخبار (اخت
 keywords_input = st.text_input("🔎 بحث الكلمات المفتاحية (اختياري):")
 keywords = [kw.strip() for kw in keywords_input.split(",")] if keywords_input else []
 
-# ---- استخراج الأخبار ----
+# دالة استخراج الأخبار
 def fetch_news_from_rss(rss_url, keywords):
     feed = feedparser.parse(rss_url)
     news_list = []
@@ -108,7 +108,6 @@ if st.button("🔍 استخراج الأخبار"):
             df = pd.DataFrame(news)
             st.dataframe(df)
 
-            # تحميل النتائج
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine='openpyxl') as writer:
                 df.to_excel(writer, index=False)
