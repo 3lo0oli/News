@@ -4,18 +4,15 @@ import pandas as pd
 import io
 from datetime import datetime
 
-# -- إعداد CSS لتجميل الصفحة --
+# -- CSS لتجميل الصفحة --
 st.markdown(
     """
     <style>
-    /* خلفية متدرجة */
     .stApp {
         background: linear-gradient(135deg, #0D1B2A, #1B263B);
         min-height: 100vh;
         padding-top: 30px;
     }
-
-    /* العنوان */
     h1 {
         color: #FFFFFF;
         font-size: 55px;
@@ -23,14 +20,10 @@ st.markdown(
         font-family: 'Helvetica Neue', sans-serif;
         margin-bottom: 10px;
     }
-
-    /* النصوص العامة */
     label, p, div, span {
         color: #d1d5db !important;
         font-family: 'Arial', sans-serif;
     }
-
-    /* تكست بوكسز واختيارات */
     .stTextInput > div > div, .stSelectbox > div {
         background-color: #243447;
         border-radius: 12px;
@@ -38,8 +31,6 @@ st.markdown(
         padding: 10px;
         color: white;
     }
-
-    /* الزرار */
     button[kind="primary"] {
         background: linear-gradient(90deg, #4CAF50, #2E7D32);
         color: white;
@@ -54,8 +45,6 @@ st.markdown(
         background: linear-gradient(90deg, #66BB6A, #388E3C);
         color: white;
     }
-
-    /* خط فاصل */
     hr {
         margin: 2rem 0;
         border: 0;
@@ -66,11 +55,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# -- صف يحتوي على الصورة والعنوان --
+# -- صف الصورة والعنوان --
 col1, col2 = st.columns([1, 5])
 
 with col1:
-    st.image("https://drive.google.com/uc?id=1YG_HCPBPdOXAZQtPswMcKK5OEltg3xYq", width=80)
+    st.image("./ea2bbe39-f62f-49b5-9d0c-e83cea04cf3a.png", width=80)  # الصورة الجديدة اللي رفعتها
 
 with col2:
     st.markdown("<h1>Bravo News 👌</h1>", unsafe_allow_html=True)
@@ -86,7 +75,7 @@ rss_feeds = {
     "الشرق الأوسط": "https://aawsat.com/home/rss.xml"
 }
 
-# -- إدخال بيانات المستخدم --
+# -- إدخال خيارات المستخدم --
 selected_feed = st.selectbox("اختر مصدر الأخبار:", list(rss_feeds.keys()))
 custom_rss = st.text_input("🛠️ مخصص لتغذية الأخبار (اختياري):")
 keywords_input = st.text_input("🔎 بحث بالكلمات المفتاحية (اختياري):")
@@ -136,7 +125,7 @@ if st.button("🔍 استخراج الأخبار"):
             df = pd.DataFrame(news)
             st.dataframe(df)
 
-            # -- حفظ كملف Excel --
+            # تحميل ملف Excel
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine='openpyxl') as writer:
                 df.to_excel(writer, index=False)
