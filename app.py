@@ -7,7 +7,69 @@ from textblob import TextBlob
 from collections import Counter
 from docx import Document
 
+# إعدادات الصفحة
 st.set_page_config(page_title="📰 أداة الأخبار العربية الذكية", layout="wide")
+
+# 🎨 تصميم CSS مخصص
+st.markdown("""
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            direction: rtl;
+            background-color: #f5f7fa;
+        }
+        .css-1d391kg, .css-1cpxqw2, .stTextInput, .stSelectbox, .stDateInput, .stButton button {
+            direction: rtl !important;
+            text-align: right !important;
+        }
+        h1, h2, h3 {
+            color: #0d47a1;
+        }
+        .stButton button {
+            background-color: #0d47a1;
+            color: white;
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        .stButton button:hover {
+            background-color: #1565c0;
+        }
+        .stDownloadButton button {
+            background-color: #2e7d32;
+            color: white;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .stDownloadButton button:hover {
+            background-color: #1b5e20;
+        }
+        .news-card {
+            background-color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .news-card h3 {
+            margin-top: 0;
+        }
+        .news-img {
+            border-radius: 10px;
+            max-width: 100%;
+        }
+        .word-frequency {
+            background: #eeeeee;
+            padding: 8px;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 4px 4px;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# العنوان الرئيسي
 st.title("🗞️ أداة إدارة وتحليل الأخبار (نسخة محسّنة + مصادر أكثر)")
 
 # التصنيفات
@@ -146,19 +208,19 @@ with col2:
         else:
             st.success(f"✅ تم العثور على {len(news)} خبر.")
             for item in news:
-                with st.container():
-                    st.markdown("----")
-                    cols = st.columns([1, 4])
-                    with cols[0]:
-                        if item["image"]:
-                            st.image(item["image"], use_column_width=True)
-                    with cols[1]:
-                        st.markdown(f"### 📰 {item['title']}")
-                        st.markdown(f"📅 التاريخ: {item['published'].strftime('%Y-%m-%d')}")
-                        st.markdown(f"📁 التصنيف: {item['category']}")
-                        st.markdown(f"📄 التلخيص: {summarize(item['summary'])}")
-                        st.markdown(f"🎯 التحليل: {item['sentiment']}")
-                        st.markdown(f"[🌐 اقرأ المزيد ↗]({item['link']})")
+                st.markdown('<div class="news-card">', unsafe_allow_html=True)
+                cols = st.columns([1, 4])
+                with cols[0]:
+                    if item["image"]:
+                        st.image(item["image"], use_column_width=True)
+                with cols[1]:
+                    st.markdown(f"<h3>📰 {item['title']}</h3>", unsafe_allow_html=True)
+                    st.markdown(f"📅 <b>التاريخ:</b> {item['published'].strftime('%Y-%m-%d')}", unsafe_allow_html=True)
+                    st.markdown(f"📁 <b>التصنيف:</b> {item['category']}", unsafe_allow_html=True)
+                    st.markdown(f"📄 <b>التلخيص:</b> {summarize(item['summary'])}", unsafe_allow_html=True)
+                    st.markdown(f"🎯 <b>التحليل:</b> {item['sentiment']}", unsafe_allow_html=True)
+                    st.markdown(f"<a href='{item['link']}' target='_blank'>🌐 اقرأ المزيد ↗</a>", unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
 
             word_file = export_to_word(news)
             excel_file = export_to_excel(news)
@@ -173,4 +235,4 @@ with col2:
             words = [word for word in all_text.split() if len(word) > 3]
             word_freq = Counter(words).most_common(10)
             for word, freq in word_freq:
-                st.markdown(f"- **{word}**: {freq} مرة")
+                st.markdown(f"<span class='word-frequency'>🔠 <b>{word}</b>: {freq} مرة</span>", unsafe_allow_html=True)
