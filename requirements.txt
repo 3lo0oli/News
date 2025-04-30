@@ -1,4 +1,6 @@
 streamlit
 feedparser
 pandas
+textblob
+python-docx
 openpyxl
