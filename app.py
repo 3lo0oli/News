@@ -1,6 +1,6 @@
 import streamlit as st
-import feedparser
 import requests
+import feedparser
 import pandas as pd
 from datetime import datetime
 from io import BytesIO
@@ -10,17 +10,15 @@ from docx import Document
 from bs4 import BeautifulSoup
 
 st.set_page_config(page_title="📰 أداة الأخبار العربية الذكية", layout="wide")
-st.title("🗞️ أداة إدارة وتحليل الأخبار (نسخة محسّنة + دعم مواقع عراقية)")
+st.title("🗞️ أداة إدارة وتحليل الأخبار (RSS + Web Scraping)")
 
-# التصنيفات
 category_keywords = {
-    "سياسة": ["رئيس", "وزير", "انتخابات", "برلمان", "سياسة", "رئاسة"],
-    "رياضة": ["كرة", "لاعب", "مباراة", "دوري", "هدف"],
-    "اقتصاد": ["سوق", "اقتصاد", "استثمار", "بنك", "مال"],
-    "تكنولوجيا": ["تقنية", "تطبيق", "هاتف", "ذكاء", "برمجة"]
+    "سياسة": ["\u0631\u0626\u064a\u0633", "\u0648\u0632\u064a\u0631", "\u0627\u0646\u062a\u062e\u0627\u0628\u0627\u062a", "\u0628\u0631\u0644\u0645\u0627\u0646", "\u0633\u064a\u0627\u0633\u0629"],
+    "رياضة": ["\u0643\u0631\u0629", "\u0644\u0627\u0639\u0628", "\u0645\u0628\u0627\u0631\u0627\u0629", "\u062f\u0648\u0631\u064a", "\u0647\u062f\u0641"],
+    "اقتصاد": ["\u0633\u0648\u0642", "\u0627\u0642\u062a\u0635\u0627\u062f", "\u0627\u0633\u062a\u062b\u0645\u0627\u0631", "\u0628\u0646\u0643", "\u0645\u0627\u0644"],
+    "تكنولوجيا": ["\u062a\u0642\u0646\u064a\u0629", "\u062a\u0637\u0628\u064a\u0642", "\u0647\u0627\u062a\u0641", "\u0630\u0643\u0627\u0621", "\u0628\u0631\u0645\u062c\u0629"]
 }
 
-# --- التحليل والتصنيف ---
 def summarize(text, max_words=25):
     return " ".join(text.split()[:max_words]) + "..."
 
@@ -39,244 +37,116 @@ def detect_category(text):
             return category
     return "غير مصنّف"
 
-# --- Scrapers ---
-def fetch_hathalyoum_news(keywords, date_from, date_to, chosen_category):
-    url = "https://hathalyoum.net/"
+def fetch_scraped_news(url, source_name, keywords, date_from, date_to, chosen_category, selector, link_prefix=""):
     res = requests.get(url)
     soup = BeautifulSoup(res.content, "html.parser")
     news_list = []
 
-    for article in soup.select(".newstitle a"):
-        title = article.text.strip()
-        link = article["href"]
-        summary = title
+    for a in soup.select(selector):
+        title = a.text.strip()
+        link = a.get("href", "")
+        if link_prefix and not link.startswith("http"):
+            link = link_prefix + link
         published_dt = datetime.today()
 
-        full_text = title
-        if keywords and not any(k.lower() in full_text.lower() for k in keywords):
+        if keywords and not any(k.lower() in title.lower() for k in keywords):
             continue
-        auto_category = detect_category(full_text)
+
+        auto_category = detect_category(title)
         if chosen_category != "الكل" and auto_category != chosen_category:
             continue
 
         news_list.append({
-            "source": "هَذا اليوم",
+            "source": source_name,
             "title": title,
-            "summary": summary,
+            "summary": title,
             "link": link,
             "published": published_dt,
             "image": "",
-            "sentiment": analyze_sentiment(summary),
+            "sentiment": analyze_sentiment(title),
             "category": auto_category
         })
+
     return news_list
 
-def fetch_iraqtoday_news(keywords, date_from, date_to, chosen_category):
-    url = "https://iraqtoday.com/"
-    res = requests.get(url)
-    soup = BeautifulSoup(res.content, "html.parser")
-    news_list = []
+def fetch_news(source_name, source_data, keywords, date_from, date_to, chosen_category):
+    if source_data["type"] == "rss":
+        feed = feedparser.parse(source_data["url"])
+        news_list = []
+        for entry in feed.entries:
+            title = entry.title
+            summary = entry.get("summary", "")
+            link = entry.link
+            published = entry.get("published", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            try:
+                published_dt = datetime.strptime(published, "%a, %d %b %Y %H:%M:%S %Z")
+            except:
+                published_dt = datetime.now()
+            image = ""
+            if 'media_content' in entry:
+                image = entry.media_content[0].get('url', '')
+            elif 'media_thumbnail' in entry:
+                image = entry.media_thumbnail[0].get('url', '')
 
-    for article in soup.select(".block-title a"):
-        title = article.text.strip()
-        link = article["href"]
-        summary = title
-        published_dt = datetime.today()
+            if not (date_from <= published_dt.date() <= date_to):
+                continue
 
-        full_text = title
-        if keywords and not any(k.lower() in full_text.lower() for k in keywords):
-            continue
-        auto_category = detect_category(full_text)
-        if chosen_category != "الكل" and auto_category != chosen_category:
-            continue
+            full_text = title + " " + summary
+            if keywords and not any(k.lower() in full_text.lower() for k in keywords):
+                continue
 
-        news_list.append({
-            "source": "Iraq Today",
-            "title": title,
-            "summary": summary,
-            "link": link,
-            "published": published_dt,
-            "image": "",
-            "sentiment": analyze_sentiment(summary),
-            "category": auto_category
-        })
-    return news_list
+            auto_category = detect_category(full_text)
+            if chosen_category != "الكل" and auto_category != chosen_category:
+                continue
 
-def fetch_moi_news(keywords, date_from, date_to, chosen_category):
-    url = "https://moi.gov.iq/"
-    res = requests.get(url)
-    soup = BeautifulSoup(res.content, "html.parser")
-    news_list = []
+            news_list.append({
+                "source": source_name,
+                "title": title,
+                "summary": summary,
+                "link": link,
+                "published": published_dt,
+                "image": image,
+                "sentiment": analyze_sentiment(summary),
+                "category": auto_category
+            })
+        return news_list
 
-    for article in soup.select(".more-news .title-news a"):
-        title = article.text.strip()
-        link = article["href"]
-        if not link.startswith("http"):
-            link = "https://moi.gov.iq" + link
-        summary = title
-        published_dt = datetime.today()
+    elif source_data["type"] == "scrape":
+        return fetch_scraped_news(source_data["url"], source_name, keywords, date_from, date_to, chosen_category, source_data["selector"], source_data.get("prefix", ""))
 
-        full_text = title
-        if keywords and not any(k.lower() in full_text.lower() for k in keywords):
-            continue
-        auto_category = detect_category(full_text)
-        if chosen_category != "الكل" and auto_category != chosen_category:
-            continue
-
-        news_list.append({
-            "source": "وزارة الداخلية",
-            "title": title,
-            "summary": summary,
-            "link": link,
-            "published": published_dt,
-            "image": "",
-            "sentiment": analyze_sentiment(summary),
-            "category": auto_category
-        })
-    return news_list
-
-def fetch_presidency_news(keywords, date_from, date_to, chosen_category):
-    url = "https://presidency.iq/"
-    res = requests.get(url)
-    soup = BeautifulSoup(res.content, "html.parser")
-    news_list = []
-
-    for article in soup.select(".article-title a"):
-        title = article.text.strip()
-        link = article["href"]
-        summary = title
-        published_dt = datetime.today()
-
-        full_text = title
-        if keywords and not any(k.lower() in full_text.lower() for k in keywords):
-            continue
-        auto_category = detect_category(full_text)
-        if chosen_category != "الكل" and auto_category != chosen_category:
-            continue
-
-        news_list.append({
-            "source": "رئاسة الجمهورية",
-            "title": title,
-            "summary": summary,
-            "link": link,
-            "published": published_dt,
-            "image": "",
-            "sentiment": analyze_sentiment(summary),
-            "category": auto_category
-        })
-    return news_list
-
-def fetch_asharq_iraq_news(keywords, date_from, date_to, chosen_category):
-    url = "https://asharq.com/tags/%D8%A7%D9%84%D8%B9%D8%B1%D8%A7%D9%82/"
-    res = requests.get(url)
-    soup = BeautifulSoup(res.content, "html.parser")
-    news_list = []
-
-    for article in soup.select("a.Card"):
-        title = article.text.strip()
-        link = "https://asharq.com" + article["href"]
-        summary = title
-        published_dt = datetime.today()
-
-        full_text = title
-        if keywords and not any(k.lower() in full_text.lower() for k in keywords):
-            continue
-        auto_category = detect_category(full_text)
-        if chosen_category != "الكل" and auto_category != chosen_category:
-            continue
-
-        news_list.append({
-            "source": "الشرق - العراق",
-            "title": title,
-            "summary": summary,
-            "link": link,
-            "published": published_dt,
-            "image": "",
-            "sentiment": analyze_sentiment(summary),
-            "category": auto_category
-        })
-    return news_list
-
-def fetch_rt_iraq_news(keywords, date_from, date_to, chosen_category):
-    url = "https://arabic.rt.com/focuses/10744-العراق/"
-    res = requests.get(url)
-    soup = BeautifulSoup(res.content, "html.parser")
-    news_list = []
-
-    for article in soup.select(".news-line a"):
-        title = article.text.strip()
-        link = "https://arabic.rt.com" + article["href"]
-        summary = title
-        published_dt = datetime.today()
-
-        full_text = title
-        if keywords and not any(k.lower() in full_text.lower() for k in keywords):
-            continue
-        auto_category = detect_category(full_text)
-        if chosen_category != "الكل" and auto_category != chosen_category:
-            continue
-
-        news_list.append({
-            "source": "RT - العراق",
-            "title": title,
-            "summary": summary,
-            "link": link,
-            "published": published_dt,
-            "image": "",
-            "sentiment": analyze_sentiment(summary),
-            "category": auto_category
-        })
-    return news_list
-
-# --- مصادر الأخبار ---
+# المصادر
 rss_feeds = {
-    "هَذا اليوم": {"type": "scrape", "function": fetch_hathalyoum_news},
-    "Iraq Today": {"type": "scrape", "function": fetch_iraqtoday_news},
-    "وزارة الداخلية": {"type": "scrape", "function": fetch_moi_news},
-    "رئاسة الجمهورية": {"type": "scrape", "function": fetch_presidency_news},
-    "الشرق - العراق": {"type": "scrape", "function": fetch_asharq_iraq_news},
-    "RT - العراق": {"type": "scrape", "function": fetch_rt_iraq_news}
+    "RT Arabic": {"type": "rss", "url": "https://arabic.rt.com/rss/"},
+    "Hatha Alyoum": {"type": "scrape", "url": "https://hathalyoum.net/", "selector": ".newstitle a"},
+    "Iraq Today": {"type": "scrape", "url": "https://iraqtoday.com/", "selector": ".block-title a"},
+    "وزارة الداخلية": {"type": "scrape", "url": "https://moi.gov.iq/", "selector": ".more-news .title-news a", "prefix": "https://moi.gov.iq"},
+    "رئاسة الجمهورية": {"type": "scrape", "url": "https://presidency.iq/", "selector": ".article-title a"},
+    "الشرق - العراق": {"type": "scrape", "url": "https://asharq.com/tags/العراق/", "selector": "a.Card", "prefix": "https://asharq.com"},
+    "RT - العراق": {"type": "scrape", "url": "https://arabic.rt.com/focuses/10744-العراق/", "selector": ".focus-page__item a.focus-page__link", "prefix": "https://arabic.rt.com"},
+    "العربية - العراق": {"type": "scrape", "url": "https://x.com/AlArabiya_Iraq?t=_o4RgF2gn5IEz3a8WZQ_GQ&s=09", "selector": "title"}  # placeholder
 }
 
-# --- واجهة التحكم ---
+# واجهة التحكم
 col1, col2 = st.columns([1, 2])
 with col1:
     selected_source = st.selectbox("🌐 اختر مصدر الأخبار:", list(rss_feeds.keys()))
     keywords_input = st.text_input("🔍 كلمات مفتاحية (مفصولة بفواصل):", "")
     keywords = [kw.strip() for kw in keywords_input.split(",")] if keywords_input else []
     category_filter = st.selectbox("📁 اختر التصنيف:", ["الكل"] + list(category_keywords.keys()))
-    date_from = st.date_input("📅 من تاريخ:", datetime.today())
-    date_to = st.date_input("📅 إلى تاريخ:", datetime.today())
-    run = st.button("📥 عرض الأخبار")
-
-# --- تحليل ونتائج ---
-def export_to_word(news_list):
-    doc = Document()
-    for news in news_list:
-        doc.add_heading(news['title'], level=2)
-        doc.add_paragraph(f"المصدر: {news['source']}  |  التصنيف: {news['category']}")
-        doc.add_paragraph(f"📅 التاريخ: {news['published'].strftime('%Y-%m-%d %H:%M:%S')}")
-        doc.add_paragraph(f"📄 التلخيص: {summarize(news['summary'])}")
-        doc.add_paragraph(f"🔗 الرابط: {news['link']}")
-        doc.add_paragraph(f"تحليل معنوي: {news['sentiment']}")
-        doc.add_paragraph("-----")
-    buffer = BytesIO()
-    doc.save(buffer)
-    buffer.seek(0)
-    return buffer
-
-def export_to_excel(news_list):
-    df = pd.DataFrame(news_list)
-    buffer = BytesIO()
-    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False)
-    buffer.seek(0)
-    return buffer
+    date_from = st.date_input("🗓 من تاريخ:", datetime.today())
+    date_to = st.date_input("🗓 إلى تاريخ:", datetime.today())
+    run = st.button("📅 عرض الأخبار")
 
 with col2:
     if run:
-        source_data = rss_feeds[selected_source]
-        news = source_data["function"](keywords, date_from, date_to, category_filter)
+        news = fetch_news(
+            selected_source,
+            rss_feeds[selected_source],
+            keywords,
+            date_from,
+            date_to,
+            category_filter
+        )
 
         if not news:
             st.warning("❌ لا توجد أخبار بهذه الشروط.")
@@ -291,11 +161,34 @@ with col2:
                             st.image(item["image"], use_column_width=True)
                     with cols[1]:
                         st.markdown(f"### 📰 {item['title']}")
-                        st.markdown(f"📅 التاريخ: {item['published'].strftime('%Y-%m-%d')}")
+                        st.markdown(f"🗓 التاريخ: {item['published'].strftime('%Y-%m-%d')}")
                         st.markdown(f"📁 التصنيف: {item['category']}")
                         st.markdown(f"📄 التلخيص: {summarize(item['summary'])}")
                         st.markdown(f"🎯 التحليل: {item['sentiment']}")
                         st.markdown(f"[🌐 اقرأ المزيد ↗]({item['link']})")
+
+            def export_to_word(news_list):
+                doc = Document()
+                for news in news_list:
+                    doc.add_heading(news['title'], level=2)
+                    doc.add_paragraph(f"المصدر: {news['source']}  |  التصنيف: {news['category']}")
+                    doc.add_paragraph(f"📅 التاريخ: {news['published'].strftime('%Y-%m-%d %H:%M:%S')}")
+                    doc.add_paragraph(f"📄 التلخيص: {summarize(news['summary'])}")
+                    doc.add_paragraph(f"🔗 الرابط: {news['link']}")
+                    doc.add_paragraph(f"تحليل معنوي: {news['sentiment']}")
+                    doc.add_paragraph("-----")
+                buffer = BytesIO()
+                doc.save(buffer)
+                buffer.seek(0)
+                return buffer
+
+            def export_to_excel(news_list):
+                df = pd.DataFrame(news_list)
+                buffer = BytesIO()
+                with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+                    df.to_excel(writer, index=False)
+                buffer.seek(0)
+                return buffer
 
             st.download_button("📄 تحميل كـ Word", data=export_to_word(news), file_name="news.docx",
                                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
